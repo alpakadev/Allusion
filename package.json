@@ -93,7 +93,7 @@
     "url": "git+https://github.com/RafaUC/Allusion.git"
   },
   "author": "Allusion-App",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/RafaUC/Allusion/issues"
   },
