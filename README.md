@@ -87,7 +87,7 @@ Dragging files onto folders in the Locations panel still works, with the same sa
 
 The options are in Settings → Sorting, and the hotkeys can be changed in Settings → Shortcuts.
 
-This feature was developed with the help of an AI coding assistant.
+Why this version exists is explained in [issue #1](https://github.com/alpakadev/Allusion/issues/1). This feature was developed with the help of an AI coding assistant.
 
 <sub>The pictures in the screenshots are public domain works from the Cleveland Museum of Art, shared under CC0 through its Open Access programme.</sub>
 
