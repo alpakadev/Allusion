@@ -27,7 +27,7 @@ interface ListItemProps {
 
 export const ListItem = observer((props: ListItemProps) => {
   const { index, data, style, isScrolling } = props;
-  const { uiStore } = useStore();
+  const { uiStore, moveStore } = useStore();
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
@@ -40,6 +40,8 @@ export const ListItem = observer((props: ListItemProps) => {
   }, [isScrolling]);
 
   const showData = !uiStore.isRefreshing;
+  // Moved files stay in the list, greyed out, until it is reloaded
+  const movedTo = file ? moveStore.movedMarks.get(file.id) : undefined;
 
   return (
     <div
@@ -47,6 +49,7 @@ export const ListItem = observer((props: ListItemProps) => {
       role="row"
       aria-rowindex={index + 1}
       aria-selected={file ? uiStore.fileSelection.has(file) : false}
+      data-moved-to={movedTo}
       style={style}
       onClick={eventManager ? eventManager.select : undefined}
       onDoubleClick={eventManager ? eventManager.preview : undefined}
@@ -63,6 +66,7 @@ export const ListItem = observer((props: ListItemProps) => {
       <div role="gridcell" className="col-name">
         {showData && file && <Thumbnail mounted={isMounted} file={file} />}
         {showData && file?.name}
+        {showData && movedTo !== undefined && <span className="list-moved-label">→ {movedTo}</span>}
       </div>
 
       {/* Dimensions */}

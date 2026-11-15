@@ -635,6 +635,12 @@ class LocationStore {
   @action async addFile(fileStats: FileStats, location: ClientLocation): Promise<void> {
     const fileStore = this.rootStore.fileStore;
 
+    // Files moved by the MoveStore are kept up to date by it. Handling them here as well would
+    // reload the gallery, which rearranges it and closes the full-size view.
+    if (this.rootStore.moveStore.isRecentMove(fileStats.absolutePath)) {
+      return;
+    }
+
     // Gather file data
     const file = await pathToIFile(fileStats, location, this.rootStore.imageLoader);
 
@@ -649,7 +655,10 @@ class LocationStore {
 
     if (match) {
       if (fileStats.absolutePath === match.absolutePath) {
-        fileStore.debouncedRefetch();
+        // Files moved by the MoveStore are up to date already: no need to reload the gallery
+        if (!this.rootStore.moveStore.isRecentMove(fileStats.absolutePath)) {
+          fileStore.debouncedRefetch();
+        }
         return;
       }
       fileStore.replaceMovedFile(match, file);
@@ -706,6 +715,9 @@ class LocationStore {
     // Could also mean that a file was renamed or moved, in which case addFile was called already:
     // its path will have changed, so we won't find it here, which is fine, it'll be detected as missing later.
     const fileStore = this.rootStore.fileStore;
+    if (this.rootStore.moveStore.isRecentMove(path)) {
+      return;
+    }
     const clientFile = fileStore.fileList.find((f) => f && f.absolutePath === path);
 
     if (clientFile) {

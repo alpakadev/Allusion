@@ -1,4 +1,5 @@
 import fse from 'fs-extra';
+import SysPath from 'path';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 //import { setTimeout as delay } from 'node:timers/promises';
 
@@ -806,12 +807,22 @@ class FileStore {
       const { thumbnailDirectory } = this.rootStore.uiStore; // TODO: make a config store for this?
       const oldThumbnailPath = file.thumbnailPath.split('?')[0];
       const newThumbPath = getThumbnailPath(newData.absolutePath, thumbnailDirectory);
-      fse
-        .move(oldThumbnailPath, newThumbPath)
-        .catch((err) => console.error('Error moving file:', err));
+      // Small images have no generated thumbnail: their thumbnailPath is the image file itself,
+      // which must never be moved as if it were a thumbnail.
+      const hasGeneratedThumbnail =
+        SysPath.resolve(SysPath.dirname(oldThumbnailPath)) === SysPath.resolve(thumbnailDirectory);
+      if (hasGeneratedThumbnail) {
+        fse
+          .move(oldThumbnailPath, newThumbPath)
+          .catch((err) => console.error('Error moving file:', err));
+      }
 
       const newClientFile = new ClientFile(this, newIFile);
-      newClientFile.thumbnailPath = newThumbPath;
+      if (hasGeneratedThumbnail) {
+        newClientFile.thumbnailPath = newThumbPath;
+      } else if (oldThumbnailPath === file.absolutePath) {
+        newClientFile.thumbnailPath = newData.absolutePath;
+      }
       this.fileList[index] = newClientFile;
       this.save(newClientFile.serialize());
     }
@@ -1501,6 +1512,9 @@ class FileStore {
     direction?: PaginationDirection,
   ): Promise<void> {
     const isReplace = direction === undefined;
+    if (isReplace) {
+      this.rootStore.moveStore.clearMovedMarks();
+    }
     if (backendFiles.length === 0 && isReplace) {
       this.rootStore.uiStore.clearFileSelection();
       this.fileListLastRefetch = new Date();

@@ -97,6 +97,14 @@ export interface IHotkeyMap {
   // Other
   openPreviewWindow: string;
   openExternal: string;
+
+  // Moving files
+  moveSelection: string;
+  undoMove: string;
+  redoMove: string;
+  toggleDestinationPanel: string;
+  quickMove: string;
+  moveToLastDestination: string;
 }
 
 // https://blueprintjs.com/docs/#core/components/hotkeys.dialog
@@ -127,6 +135,12 @@ export const defaultHotkeyMap: IHotkeyMap = {
   refreshLocationsAndDetectFileChanges: 'l',
   openPreviewWindow: 'space',
   openExternal: 'mod + enter',
+  moveSelection: 'mod + m',
+  undoMove: 'mod + z',
+  redoMove: 'mod + shift + z',
+  toggleDestinationPanel: 'd',
+  quickMove: 'm',
+  moveToLastDestination: 'shift + m',
 };
 
 /**
@@ -1552,6 +1566,19 @@ class UiStore {
       this.setMethodMasonryHorizontal();
     } else if (matches(hotkeyMap.viewSlide)) {
       this.toggleSlideMode();
+      // Moving files
+    } else if (matches(hotkeyMap.redoMove)) {
+      this.rootStore.moveStore.redo();
+    } else if (matches(hotkeyMap.undoMove)) {
+      this.rootStore.moveStore.undo();
+    } else if (matches(hotkeyMap.moveSelection)) {
+      this.rootStore.moveStore.moveSelectionWithDialog();
+    } else if (matches(hotkeyMap.toggleDestinationPanel)) {
+      this.rootStore.sortStore.togglePanel();
+    } else if (matches(hotkeyMap.quickMove)) {
+      this.rootStore.sortStore.openQuickMove();
+    } else if (matches(hotkeyMap.moveToLastDestination)) {
+      this.rootStore.moveStore.moveSelectionToLastDestination();
     } else {
       isMatch = false;
     }

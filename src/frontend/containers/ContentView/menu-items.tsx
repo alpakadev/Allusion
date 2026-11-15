@@ -1,9 +1,10 @@
 import { shell } from 'electron';
+import { ExternalApp } from '../../stores/SortStore';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React from 'react';
 
-import { IconSet } from 'widgets';
+import { IconSet, KeyCombo } from 'widgets';
 import { MenuItem, MenuRadioItem, MenuSubItem } from 'widgets/menus';
 import { useStore } from '../../contexts/StoreContext';
 import { ClientFile } from '../../entities/File';
@@ -42,7 +43,7 @@ export const MissingFileMenuItems = observer(() => {
 });
 
 export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
-  const { uiStore, locationStore, fileStore } = useStore();
+  const { uiStore, locationStore, fileStore, moveStore, sortStore } = useStore();
 
   const handleClearSelectedFileTags = () => {
     // Currently copy tags to clipboard as backup in case of error by the user
@@ -94,6 +95,17 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
         onClick={handlePreviewWindow}
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
+      />
+      <MenuItem
+        onClick={() => moveStore.moveSelectionWithDialog()}
+        text="Move to Folder..."
+        icon={IconSet.FOLDER_CLOSE}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.moveSelection} />}
+      />
+      <MenuItem
+        onClick={() => sortStore.setFolderPicture(file.absolutePath)}
+        text="Use as Folder Picture"
+        icon={IconSet.FOLDER_CLOSE}
       />
       <MenuSubItem text="Tagging..." icon={IconSet.TAG_ADD}>
         <MenuItem
@@ -301,15 +313,41 @@ export const SlideFileViewerMenuItems = observer(({ file }: { file: ClientFile }
 });
 
 export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => {
-  const { uiStore } = useStore();
+  const { uiStore, sortStore } = useStore();
+  const openWith = (app: ExternalApp | undefined) => {
+    if (app) {
+      const selection = Array.from(uiStore.fileSelection, (f) => f.absolutePath);
+      sortStore.openWith(app, selection.length > 0 ? selection : [file.absolutePath]);
+    }
+  };
   return (
     <>
-      <MenuItem
-        onClick={() => uiStore.openExternal()}
+      {/* Clicking the item opens the file with the default program; its sub menu offers others */}
+      <MenuSubItem
         text="Open External"
         icon={IconSet.OPEN_EXTERNAL}
         disabled={file.isBroken}
-      />
+        onClick={() => uiStore.openExternal()}
+      >
+        <MenuItem
+          text="Default Program"
+          icon={IconSet.OPEN_EXTERNAL}
+          onClick={() => uiStore.openExternal()}
+        />
+        {sortStore.externalApps.map((app) => (
+          <MenuItem
+            key={app.path}
+            text={app.name}
+            icon={IconSet.OPEN_EXTERNAL}
+            onClick={() => openWith(app)}
+          />
+        ))}
+        <MenuItem
+          text="Choose Program..."
+          icon={IconSet.PLUS}
+          onClick={() => sortStore.addExternalAppWithDialog().then(openWith)}
+        />
+      </MenuSubItem>
       <MenuItem
         onClick={() =>
           LocationTreeItemRevealer.instance.revealSubLocation(file.locationId, file.absolutePath)

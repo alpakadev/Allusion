@@ -10,6 +10,8 @@ import { useAction } from '../hooks/mobx';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
+import DestinationPanel from './DestinationPanel';
+import QuickMove from './DestinationPanel/QuickMove';
 import Outliner from './Outliner';
 
 const Main = () => {
@@ -66,10 +68,14 @@ const Main = () => {
           id="window-splitter"
           primary={<Outliner />}
           secondary={
-            <main id="main" onKeyDown={handleShortcuts}>
-              <AppToolbar />
-              <ContentView />
-            </main>
+            <div id="main-area">
+              <main id="main" onKeyDown={handleShortcuts}>
+                <AppToolbar />
+                <ContentView />
+                <QuickMove />
+              </main>
+              <DestinationPanel />
+            </div>
           }
           axis="vertical"
           align="left"

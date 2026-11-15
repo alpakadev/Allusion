@@ -5,6 +5,7 @@ import { IconSet } from 'widgets';
 import { ToolbarButton } from 'widgets/toolbar';
 import { FileRemoval } from '../../components/RemovalAlert';
 import { useStore } from '../../contexts/StoreContext';
+import { DestinationPanelToggle } from '../DestinationPanel';
 import { SortCommand, ViewCommand } from './Menus';
 import Searchbar from './Searchbar';
 import {
@@ -52,6 +53,7 @@ const PrimaryCommands = observer(() => {
           <FileExtraPropertiesEditorButton />
           <FileExifEditorButton />
           <InspectorButton />
+          <DestinationPanelToggle />
         </>
         //</div>
       )}
@@ -83,6 +85,7 @@ export const SlideModeCommand = () => {
       <FileExtraPropertiesEditorButton />
       <FileExifEditorButton />
 
+      <DestinationPanelToggle />
       <InspectorButton />
     </>
   );

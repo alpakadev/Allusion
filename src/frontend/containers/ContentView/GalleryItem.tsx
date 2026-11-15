@@ -36,7 +36,8 @@ export const MasonryCell = observer(
     forceNoThumbnail,
     transform: [width, height, top, left],
   }: MasonryItemProps) => {
-    const { uiStore, fileStore } = useStore();
+    const { uiStore, fileStore, moveStore } = useStore();
+    const movedTo = moveStore.movedMarks.get(file.id);
     const [isHovered, setIsHovered] = useState(false);
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
@@ -57,7 +58,10 @@ export const MasonryCell = observer(
     const renderThumbnailContent = () => (
       <>
         <div
-          className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
+          className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}${
+            movedTo !== undefined ? ' thumbnail-moved' : ''
+          }`}
+          data-moved-to={movedTo}
           onClick={eventManager.select}
           onDoubleClick={eventManager.preview}
           onContextMenu={eventManager.showContextMenu}

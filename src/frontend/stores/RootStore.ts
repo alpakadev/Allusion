@@ -15,6 +15,8 @@ import SearchStore from './SearchStore';
 import ExtraPropertyStore from './ExtraPropertyStore';
 import { AppToaster } from '../components/Toaster';
 import TagPaletteStore from './TagPaletteStore';
+import MoveStore from './MoveStore';
+import SortStore from './SortStore';
 
 // This will throw exceptions whenever we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
@@ -42,6 +44,8 @@ class RootStore {
   readonly locationStore: LocationStore;
   readonly uiStore: UiStore;
   readonly searchStore: SearchStore;
+  readonly moveStore: MoveStore;
+  readonly sortStore: SortStore;
   readonly exifTool: ExifIO;
   readonly imageLoader: ImageLoader;
   readonly getWindowTitle: () => string;
@@ -58,6 +62,8 @@ class RootStore {
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
     this.searchStore = new SearchStore(backend, this);
+    this.moveStore = new MoveStore(backend, this);
+    this.sortStore = new SortStore(backend, this);
     this.#backend = backend;
     this.#backup = backup;
     this.exifTool = new ExifIO(localStorage.getItem('hierarchical-separator') || undefined);
@@ -122,6 +128,10 @@ class RootStore {
         },
       );
     }
+
+    // Load the history of moved files (for undo/redo)
+    rootStore.moveStore.init().catch(console.error);
+    rootStore.sortStore.init();
 
     // look for any new or removed images, handled by parcel/watcher
     rootStore.locationStore.watchLocations();

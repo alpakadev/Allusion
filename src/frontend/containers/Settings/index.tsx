@@ -9,6 +9,7 @@ import { BackgroundProcesses } from './BackgroundProcesses';
 import { ImageFormatPicker } from './ImageFormatPicker';
 import { ImportExport } from './ImportExport';
 import { Shortcuts } from './Shortcuts';
+import { Sorting } from './Sorting';
 import { StartupBehavior } from './StartupBehavior';
 import { UsagePreferences } from './UsagePreferences';
 
@@ -53,6 +54,10 @@ const Tabs = () => {
     {
       label: 'Keyboard Shortcuts',
       content: Shortcuts,
+    },
+    {
+      label: 'Sorting',
+      content: Sorting,
     },
     {
       label: 'Startup Behavior',

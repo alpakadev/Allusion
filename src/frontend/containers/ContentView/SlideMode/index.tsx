@@ -2,8 +2,9 @@ import { shell } from 'electron';
 import { autorun, reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { encodeFilePath, isFileExtensionVideo } from 'common/fs';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { Button, IconSet, Split } from 'widgets';
 import { useStore } from '../../../contexts/StoreContext';
 import { ClientFile } from '../../../entities/File';
@@ -44,7 +45,7 @@ interface SlideViewProps {
 }
 
 const SlideView = observer(({ width, height }: SlideViewProps) => {
-  const { uiStore, fileStore, imageLoader } = useStore();
+  const { uiStore, fileStore, imageLoader, moveStore } = useStore();
   const file = uiStore.firstFileInView;
   const eventManager = useMemo(() => (file ? new CommandDispatcher(file) : undefined), [file]);
   const isFirst = useComputed(() => uiStore.firstItemIndex === 0);
@@ -82,14 +83,15 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   }, [uiStore]);
 
   const decrImgIndex = useAction(() => {
-    const index = Math.max(0, uiStore.firstItemIndex - 1);
+    // Files that were moved (greyed out in the gallery) are skipped
+    const index = moveStore.stepIndex(uiStore.firstItemIndex, -1);
     uiStore.setFirstItem(index);
 
     // Select only this file: TagEditor overlay shows tags on selected images
     uiStore.selectFile(fileStore.fileList[index], true);
   });
   const incrImgIndex = useAction(() => {
-    const index = Math.min(uiStore.firstItemIndex + 1, fileStore.fileList.length - 1);
+    const index = moveStore.stepIndex(uiStore.firstItemIndex, 1);
     uiStore.setFirstItem(index);
     uiStore.selectFile(fileStore.fileList[index], true);
   });
@@ -116,6 +118,26 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
       window.removeEventListener('keydown', handleUserKeyPress);
     };
   }, [decrImgIndex, incrImgIndex, uiStore]);
+
+  // The gallery loads its files in pages. Close to the end of what is loaded, the next page is
+  // fetched ahead, so going through the files does not stop at the end of a page.
+  const lengthAtLastFetch = useRef(-1);
+  useEffect(
+    () =>
+      autorun(() => {
+        const length = fileStore.fileList.length;
+        if (
+          length > 0 &&
+          uiStore.firstItemIndex >= length - 3 &&
+          lengthAtLastFetch.current !== length
+        ) {
+          // Once per length: at the very end nothing more comes, and it must not be asked again
+          lengthAtLastFetch.current = length;
+          fileStore.fetchAfter().catch(console.error);
+        }
+      }),
+    [fileStore, uiStore],
+  );
 
   // Preload next and previous image for better UX
   useEffect(() => {
@@ -194,6 +216,23 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
           onClose={uiStore.disableSlideMode}
           upscaleMode={uiStore.upscaleMode}
         />
+      )}
+      {file && !file.isBroken && (
+        <div
+          className="slide-drag-handle"
+          draggable
+          data-tooltip="Drag this onto a folder to move the file there"
+          onDragStart={(e) => {
+            // Same native drag as in the gallery, so the file can be dropped on a folder
+            e.preventDefault();
+            e.stopPropagation();
+            RendererMessenger.startDragExport([file.absolutePath]);
+            (window as any).internalDragStart = new Date();
+          }}
+        >
+          {IconSet.FOLDER_CLOSE}
+          <span>Drag to a folder</span>
+        </div>
       )}
       <NavigationButtons
         isStart={isFirst.get()}
