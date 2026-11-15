@@ -52,6 +52,8 @@ export type MenuSubItemProps = {
   accelerator?: JSX.Element;
   checked?: boolean;
   children: React.ReactNode;
+  /** Makes the item itself do something when clicked, besides opening its sub menu */
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
 };
 
 const SUB_ITEM_TIME_TO_CLOSE = 300;
@@ -63,6 +65,7 @@ export const MenuSubItem = ({
   children,
   accelerator,
   checked,
+  onClick,
 }: MenuSubItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const closeTimeoutRef = useRef<null | number>(null);
@@ -161,6 +164,7 @@ export const MenuSubItem = ({
         icon={icon}
         disabled={disabled}
         accelerator={accelerator}
+        onClick={onClick}
       />
       <ul
         ref={floating}

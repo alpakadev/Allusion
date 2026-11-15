@@ -147,10 +147,12 @@ export type MenuItemLinkProps = {
   disabled?: boolean;
   expanded: boolean;
   accelerator?: JSX.Element;
+  /** Makes the item itself do something when clicked, besides opening its sub menu */
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
 };
 
 export const MenuItemLink = forwardRef(function MenuItemLink(
-  { expanded, disabled, icon, text, accelerator }: MenuItemLinkProps,
+  { expanded, disabled, icon, text, accelerator, onClick }: MenuItemLinkProps,
   ref: ForwardedRef<HTMLAnchorElement>,
 ) {
   return (
@@ -162,6 +164,7 @@ export const MenuItemLink = forwardRef(function MenuItemLink(
       aria-expanded={expanded}
       aria-disabled={disabled}
       href="#"
+      onClick={disabled ? undefined : onClick}
     >
       <span className="item-icon" aria-hidden>
         {icon}
