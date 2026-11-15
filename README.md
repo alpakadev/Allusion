@@ -102,7 +102,7 @@ Allusion is a tool built for artists, aimed to help you organize your **Visual L
 ## Installation
 
 
-Find the latest version of Allusion on the [Releases](https://github.com/RafaUC/Allusion/releases) page.
+Find the latest version of this fork on the [Releases](https://github.com/alpakadev/Allusion/releases) page. It is based on [RafaUC's fork](https://github.com/RafaUC/Allusion), whose releases are [here](https://github.com/RafaUC/Allusion/releases).
 
 
 ## Development
